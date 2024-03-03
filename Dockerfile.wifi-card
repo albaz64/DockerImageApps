@@ -1,0 +1,9 @@
+FROM node as build
+
+WORKDIR /app
+
+RUN git clone https://github.com/bndw/wifi-card.git . && npx prettier --check src
+RUN yarn && yarn build 
+
+FROM albaz64/darkhttpd
+COPY --from=build /app/build /app

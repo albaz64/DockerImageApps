@@ -1,0 +1,8 @@
+FROM node as build
+
+WORKDIR /app
+
+RUN git clone https://github.com/mayswind/AriaNg.git . && npm install -g gulp && npm install && gulp clean build
+
+FROM albaz64/darkhttpd
+COPY --from=build /app/dist /app
