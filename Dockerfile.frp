@@ -1,0 +1,12 @@
+# 不再区分服务器客户端
+FROM golang:1.22 AS building
+
+COPY . /building
+WORKDIR /building
+
+RUN make frps && make frpc
+
+FROM alpine
+
+COPY --from=building /building/bin/frps /usr/bin/frps
+COPY --from=building /building/bin/frpc /usr/bin/frpc
