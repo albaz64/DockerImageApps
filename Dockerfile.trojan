@@ -1,0 +1,30 @@
+# Replace the original code with a multi-stage build
+# Clone https://github.com/trojan-gfw/trojan first
+# Then replace Dockerfile
+
+FROM alpine AS builder
+
+COPY . /src
+
+RUN apk add --no-cache --virtual .build-deps \
+        build-base \
+        cmake \
+        boost-dev \
+        openssl-dev \
+        mariadb-connector-c-dev
+
+RUN cd /src && cmake . && make -j $(nproc) && strip -s trojan
+
+FROM alpine
+
+COPY --from=builder /src/trojan /usr/bin/trojan
+
+RUN apk add --no-cache \
+        libstdc++ \
+        boost-system \
+        boost-program_options \
+        mariadb-connector-c
+
+WORKDIR /config
+
+ENTRYPOINT ["trojan", "config.json"]
