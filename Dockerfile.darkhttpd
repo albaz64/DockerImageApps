@@ -1,36 +1,36 @@
 FROM alpine AS build
 
 ENV CFLAGS=" \
-  -static                                 \
-  -O2                                     \
-  -flto                                   \
-  -D_FORTIFY_SOURCE=2                     \
-  -fstack-clash-protection                \
-  -fstack-protector-strong                \
-  -pipe                                   \
-  -Wall                                   \
-  -Werror=format-security                 \
-  -Werror=implicit-function-declaration   \
-  -Wl,-z,defs                             \
-  -Wl,-z,now                              \
-  -Wl,-z,relro                            \
-  -Wl,-z,noexecstack                      \
-  "
+    -static                                 \
+    -O2                                     \
+    -flto                                   \
+    -D_FORTIFY_SOURCE=2                     \
+    -fstack-clash-protection                \
+    -fstack-protector-strong                \
+    -pipe                                   \
+    -Wall                                   \
+    -Werror=format-security                 \
+    -Werror=implicit-function-declaration   \
+    -Wl,-z,defs                             \
+    -Wl,-z,now                              \
+    -Wl,-z,relro                            \
+    -Wl,-z,noexecstack                      \
+    "
 
 RUN apk add --no-cache build-base git
 
 WORKDIR /src
 
-RUN git clone https://github.com/emikulic/darkhttpd.git . && make darkhttpd-static && strip darkhttpd-static
+RUN git clone https://github.com/emikulic/darkhttpd.git . && make darkhttpd && strip darkhttpd
 
-RUN echo 'nobody:x:65534:' > /src/group && echo 'nobody:x:65534:65534:nobody:/app:/darkhttpd' > /src/passwd
+RUN echo 'nobody:x:65534:' > /src/docker/group && echo 'nobody:x:65534:65534:nobody:/app:/darkhttpd' > /src/docker/passwd
 
 FROM scratch
 
 WORKDIR /app
 
-COPY --from=build --chown=0:0 /src/darkhttpd-static /darkhttpd
-COPY --from=build --chown=0:0 /src/group /src/passwd /etc/
+COPY --from=build --chown=0:0 /src/darkhttpd /darkhttpd
+COPY --from=build --chown=0:0 /src/docker/group /src/docker/passwd /etc/
 
 EXPOSE 80
 ENTRYPOINT ["/darkhttpd"]
