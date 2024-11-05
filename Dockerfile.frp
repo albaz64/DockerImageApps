@@ -1,12 +1,14 @@
-# 不再区分服务器客户端
-FROM golang:1.22 AS building
+# docker build -t albaz64/frp:0.61.0 -f Dockerfile.frp .
+FROM golang:1.23 AS build
 
-COPY . /building
-WORKDIR /building
+WORKDIR /build
+
+RUN git clone https://github.com/fatedier/frp.git . &&\
+    git checkout tags/v0.61.0
 
 RUN make frps && make frpc
 
-FROM alpine
+FROM scratch
 
-COPY --from=building /building/bin/frps /usr/bin/frps
-COPY --from=building /building/bin/frpc /usr/bin/frpc
+COPY --from=build /build/bin/frps /usr/bin/frps
+COPY --from=build /build/bin/frpc /usr/bin/frpc
